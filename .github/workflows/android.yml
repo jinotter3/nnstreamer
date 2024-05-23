@@ -12,31 +12,16 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: -${{ github.event.pull_request.commits }}
-    - uses: nttld/setup-ndk@v1
+    - name: Check if rebuild required
+      uses: ./.github/actions/check-rebuild
+      with:
+        mode: android
+    - if: env.rebuild == '1'
+      uses: nttld/setup-ndk@v1
       with:
         ndk-version: r12b
         link-to-sdk: true
-    - name: Check if rebuild required
-      ## @todo This should become a reusable workflow.
-      run: |
-        tmpfile=$(mktemp)
-        git show --pretty="format:" --name-only --diff-filter=AMRC ${{ github.event.pull_request.head.sha}} -${{ github.event.pull_request.commits }} | sort | uniq | awk NF > ${tmpfile}
-        echo "changed_file_list=${tmpfile}" >> "$GITHUB_ENV"
-        rebuild=`bash .github/workflows/check_if_rebuild_requires.sh ${tmpfile} android | grep "REBUILD=YES" | wc -l`
-        echo "Rebuild required: ${rebuild}"
-        echo "rebuild=${rebuild}" >> "$GITHUB_ENV"
-    - name: make cache key
-      if: env.rebuild == '1'
-      id: make-key
-      run: echo "cache_key=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      shell: bash
-    - name: cache GST root
-      id: cache-gbs-root
-      if: env.rebuild == '1'
-      uses: actions/cache@v3
-      with:
-        path: ~/android
-        key: ${{ steps.make-key.outputs.cache_key }}
+    ## @todo Make cache works (daily update cache on main branch / restore the cache on each PR (w/o saving))
     - name: Prepare Build
       if: env.rebuild == '1'
       run: |
