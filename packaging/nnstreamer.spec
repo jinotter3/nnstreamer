@@ -21,7 +21,7 @@
 # If you want to build RPM for other Linux distro, you may need to
 # touch these values for your needs.
 %define		tensorflow_support 0
-%define		tensorflow_lite_support	1
+%define		tensorflow_lite_support	0
 %define		tensorflow2_lite_support 1
 %define		armnn_support 0
 %define		vivante_support 0
@@ -119,6 +119,29 @@
 %define		nnstreamer_edge_support 0
 %endif
 
+# Disable a few features for movable device
+%if 0%{?mv_prj}
+%define		grpc_support 0
+%define		check_test 0
+%define		edgetpu_support 0
+%define		protobuf_support 0
+%define		python3_support 0
+%define		mvncsdk2_support 0
+%define		openvino_support 0
+%define		nnfw_support 0
+%define		armnn_support 0
+%define		vivante_support 0
+%define		pytorch_support 0
+%define		caffe2_support 0
+%define		tensorflow_support 0
+%define		lua_support 0
+%define		mqtt_support 0
+%define		tvm_support 0
+%define		snpe_support 1
+%define		trix_engine_support 0
+%define		onnxruntime_support 0
+%endif
+
 # DA requested to remove unnecessary module builds
 %if 0%{?_with_da_profile}
 %define		mvncsdk2_support 0
@@ -131,6 +154,12 @@
 %define		tvm_support 0
 %define		trix_engine_support 0
 %define		onnxruntime_support 0
+
+# Enable subplugins for specific profiles
+%if 0%{?_with_meson64}
+%define		vivante_support 1
+%endif
+
 %endif
 
 # Release unit test suite as a subpackage only if check_test is enabled.
@@ -253,10 +282,7 @@ BuildRequires:	pkgconfig(openvino)
 %endif
 
 # for Vivante
-# TODO: dann and opencv will be removed in the near future.
 %if 0%{?vivante_support}
-BuildRequires:  pkgconfig(opencv)
-BuildRequires:  pkgconfig(dann)
 BuildRequires:  pkgconfig(ovxlib)
 BuildRequires:  pkgconfig(amlogic-vsi-npu-sdk)
 %endif
